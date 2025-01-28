@@ -16,54 +16,58 @@ Before starting, ensure you have:
 3. The Google Cloud SDK installed and authenticated.
 4. Access to a dataset for training and testing (e.g., from BigQuery or Cloud Storage).
 
+To run the script, follow these steps:
+
+1. Open a terminal or shell in your local environment.
+2. Run the following script:
+   ```bash
+   export PROJECT_ID=$(gcloud info --format='value(config.project)')
+   export BUCKET_NAME=$PROJECT_ID-traindays
+
 ## Setup
 1. **Create a Dataproc Cluster**: Use the Google Cloud Console or `gcloud` CLI to set up a Dataproc cluster.
+2. ```bash
+   nano create_cluster.sh
+   ```
+   ***Copy the below content to create_cluster.sh***
    ```bash
-   gcloud dataproc clusters create my-cluster \
-       --region=<region> \
-       --zone=<zone> \
-       --master-machine-type=n1-standard-4 \
-       --worker-machine-type=n1-standard-4 \
-       --num-workers=2
+   gcloud dataproc clusters create ch6cluster \
+     --enable-component-gateway \
+     --region ${REGION} \
+     --master-machine-type n1-standard-4 \
+     --master-boot-disk-size 500 --num-workers 2 \
+     --worker-machine-type n1-standard-4 \
+     --worker-boot-disk-size 500 \
+     --optional-components JUPYTER --project $PROJECT \
+     --initialization-actions=$INSTALL \
+     --scopes https://www.googleapis.com/auth/cloud-platform \
+     --public-ip-address
    ```
 
-2. **Upload Data**: Place your training dataset in a Google Cloud Storage bucket.
-
-3. **Prepare the Spark Job**: Write a Python or Scala script that uses Spark MLlib for data preprocessing and model training.
-
-## Key Steps
-1. **Data Ingestion**: Load the dataset from Cloud Storage or BigQuery into Spark.
-   ```python
-   from pyspark.sql import SparkSession
-
-   spark = SparkSession.builder.appName("ML with Dataproc").getOrCreate()
-   data = spark.read.csv("gs://<bucket-name>/<file-name>.csv", header=True, inferSchema=True)
+   ***Run this file by executing below command***
+   ```bash
+   ./create_cluster.sh $BUCKET_NAME  us-east4
    ```
+   ## Troubleshooting
 
-2. **Data Preprocessing**: Use Spark transformations to clean and prepare the data.
-   ```python
-   from pyspark.ml.feature import VectorAssembler
+***Note***: If you encounter an error indicating that there are no available resources in the `us-east1-a` region, follow these steps:
 
-   assembler = VectorAssembler(inputCols=["feature1", "feature2"], outputCol="features")
-   prepared_data = assembler.transform(data)
-   ```
+   1. Open the `create_cluster.sh` script.
+   2. Locate line 3, which contains the region setting:
+      ```bash
+      --region ${REGION}
+      ```
+   3. Modify it to specify a different zone within the us-east1 region
+      ```bash
+      --region ${REGION} --zone us-east1-b
+      ```
+   4. Save the changes and run the script again.
 
-3. **Model Training**: Train a model using Spark MLlib.
-   ```python
-   from pyspark.ml.classification import LogisticRegression
 
-   lr = LogisticRegression(featuresCol="features", labelCol="label")
-   model = lr.fit(prepared_data)
-   ```
+4. **Upload Data**: Place your training dataset in a Google Cloud Storage bucket.
 
-4. **Model Evaluation**: Test the model's accuracy using Spark's evaluation metrics.
-   ```python
-   from pyspark.ml.evaluation import BinaryClassificationEvaluator
+5. **Prepare the Spark Job**: Look into trainday_prediction_using_dataproc_spark.py to run the code
 
-   evaluator = BinaryClassificationEvaluator()
-   accuracy = evaluator.evaluate(model.transform(prepared_data))
-   print(f"Model Accuracy: {accuracy}")
-   ```
 
 ## Deployment
 Once the model is trained and evaluated, you can:
