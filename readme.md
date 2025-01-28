@@ -66,7 +66,7 @@ To run the script, follow these steps:
 
 4. **Upload Data**: Place your training dataset in a Google Cloud Storage bucket.
 
-5. **Prepare the Spark Job**: Look into trainday_prediction_using_dataproc_spark.py to run the code
+5. **Prepare the Spark Job**: Look into [trainday_prediction_using_dataproc_spark.py](https://github.com/meghanabaradhya/Machine-Learning-with-Spark-on-Google-Cloud-Dataproc/blob/main/trainday_prediction_using_dataproc_spark.ipynb) to run the code
 
 
 ## Deployment
